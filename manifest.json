@@ -1,0 +1,16 @@
+{
+  "name": "TSAD Biohythane TEA Calculator",
+  "short_name": "TSAD TEA",
+  "description": "Free TEA calculator for two-stage anaerobic digestion biohythane production",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1D9E75",
+  "icons": [
+    {
+      "src": "https://idowu-tsad-tea26.netlify.app/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
