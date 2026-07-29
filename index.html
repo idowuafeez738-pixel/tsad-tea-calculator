@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="TSAD TEA">
+<meta name="theme-color" content="#1D9E75">
+<title>TSAD Biohythane TEA Calculator</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root{--green:#1D9E75;--blue:#1a73e8;--dark:#1a1a1a;--grey:#f5f5f5;--border:#e0e0e0;--red:#e53935}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{background:#fff;color:var(--dark);max-width:480px;margin:0 auto;min-height:100vh}
+header{background:var(--green);color:#fff;padding:16px;text-align:center}
+header h1{font-size:18px;font-weight:600}
+header p{font-size:12px;opacity:.85;margin-top:4px}
+.install-banner{background:#e8f5e9;border-left:4px solid var(--green);padding:10px 14px;font-size:12px;color:#2e7d32}
+nav{display:flex;overflow-x:auto;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+nav button{flex:1;padding:12px 4px;border:none;background:none;font-size:11px;color:#666;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;min-width:60px}
+nav button.active{color:var(--green);border-bottom-color:var(--green);font-weight:600}
+.tab{display:none;padding:16px}
+.tab.active{display:block}
+.field-group{margin-bottom:20px}
+.field-group label{display:block;font-size:12px;font-weight:500;color:#555;margin-bottom:6px}
+.field-row{display:flex;align-items:center;gap:8px}
+.field-row input{flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;outline:none}
+.field-row input:focus{border-color:var(--green)}
+.field-row .unit{font-size:12px;color:#888;min-width:50px}
+.radio-group{display:flex;gap:8px}
+.radio-group label{flex:1;border:1px solid var(--border);border-radius:8px;padding:8px;text-align:center;font-size:12px;cursor:pointer}
+.radio-group input:checked+span{color:var(--green);font-weight:600}
+.section-title{font-size:13px;font-weight:600;color:#333;margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.btn-primary{width:100%;padding:14px;background:var(--green);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px}
+.btn-next{width:100%;padding:12px;background:#f0faf6;color:var(--green);border:1px solid var(--green);border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;margin-top:16px}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.result-card{background:var(--grey);border-radius:10px;padding:12px}
+.result-card.highlight{background:#e8f5e9}
+.result-card.negative{background:#fce4ec}
+.result-label{font-size:11px;color:#666;margin-bottom:4px}
+.result-value{font-size:16px;font-weight:600;color:var(--dark)}
+.result-sub{font-size:10px;color:#888;margin-top:2px}
+.breakdown-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.breakdown-row:last-child{border:none;font-weight:600}
+.assessment-box{border-radius:10px;padding:14px;margin:12px 0;text-align:center}
+.assessment-box.positive{background:#e8f5e9;border:1px solid #a5d6a7}
+.assessment-box.negative{background:#fce4ec;border:1px solid #ef9a9a}
+.assessment-box.neutral{background:#fff8e1;border:1px solid #ffe082}
+.assessment-title{font-size:14px;font-weight:600;margin-bottom:4px}
+.assessment-body{font-size:12px;color:#555}
+.slider-group{margin-bottom:16px}
+.slider-header{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px}
+.slider-header span{font-weight:500;color:var(--green)}
+input[type=range]{width:100%;accent-color:var(--green)}
+.sens-result{background:var(--grey);border-radius:8px;padding:12px;margin-top:12px}
+.sens-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0}
+.about-section{margin-bottom:20px}
+.about-section h3{font-size:13px;font-weight:600;margin-bottom:8px;color:#333}
+.about-section p,.about-section li{font-size:12px;color:#555;line-height:1.7}
+.about-section li{margin-left:16px;margin-bottom:4px}
+.ref-item{font-size:11px;color:#666;margin-bottom:6px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>TSAD Biohythane TEA Calculator</h1>
+  <p>Two-stage anaerobic digestion · techno-economic analysis</p>
+</header>
+
+<div class="install-banner">
+  📲 <strong>Install this app:</strong> tap your browser's Share button → "Add to Home Screen" for offline access.
+</div>
+
+<nav>
+  <button class="active" onclick="showTab('feedstock',this)">Feedstock</button>
+  <button onclick="showTab('reactor',this)">Reactor</button>
+  <button onclick="showTab('economics',this)">Economics</button>
+  <button onclick="showTab('results',this)">Results</button>
+  <button onclick="showTab('sensitivity',this)">Sensitivity</button>
+  <button onclick="showTab('about',this)">About</button>
+</nav>
+
+<!-- FEEDSTOCK TAB -->
+<div id="feedstock" class="tab active">
+  <div class="section-title">Feedstock &amp; throughput</div>
+
+  <div class="field-group">
+    <label>Daily feedstock throughput</label>
+    <div class="field-row"><input type="number" id="throughput" value="100" step="1"><span class="unit">t/d</span></div>
+  </div>
+  <div class="field-group">
+    <label>Total solids content (TS%)</label>
+    <div class="field-row"><input type="number" id="ts" value="4.0" step="0.1"><span class="unit">%</span></div>
+  </div>
+  <div class="field-group">
+    <label>Volatile solids / TS (VS/TS%)</label>
+    <div class="field-row"><input type="number" id="vsts" value="88" step="0.1"><span class="unit">%</span></div>
+  </div>
+
+  <div class="section-title">H₂ production (Stage 1)</div>
+  <div class="field-group">
+    <label>Reporting basis</label>
+    <div class="radio-group">
+      <label><input type="radio" name="h2basis" value="rate" checked onchange="updateUnits()"><span> Rate mL/L/d</span></label>
+      <label><input type="radio" name="h2basis" value="yield" onchange="updateUnits()"><span> Yield mL/g VS</span></label>
+    </div>
+  </div>
+  <div class="field-group">
+    <label>H₂ production value</label>
+    <div class="field-row"><input type="number" id="h2val" value="642.6" step="0.1"><span class="unit" id="h2unit">mL/L/d</span></div>
+  </div>
+
+  <div class="section-title">CH₄ production (Stage 2)</div>
+  <div class="field-group">
+    <label>Reporting basis</label>
+    <div class="radio-group">
+      <label><input type="radio" name="ch4basis" value="rate" checked onchange="updateUnits()"><span> Rate mL/L/d</span></label>
+      <label><input type="radio" name="ch4basis" value="yield" onchange="updateUnits()"><span> Yield mL/g VS</span></label>
+    </div>
+  </div>
+  <div class="field-group">
+    <label>CH₄ production value</label>
+    <div class="field-row"><input type="number" id="ch4val" value="475.2" step="0.1"><span class="unit" id="ch4unit">mL/L/d</span></div>
+  </div>
+
+  <div class="section-title">Commercial-scale adjustment</div>
+  <div class="field-group">
+    <label>Scale-down factor (lab → commercial)</label>
+    <div class="field-row"><input type="number" id="scalefactor" value="90" step="1" min="50" max="100"><span class="unit">%</span></div>
+  </div>
+
+  <button class="btn-next" onclick="showTab('reactor',document.querySelectorAll('nav button')[1])">Next: Reactor design →</button>
+</div>
+
+<!-- REACTOR TAB -->
+<div id="reactor" class="tab">
+  <div class="section-title">Hydraulic retention times</div>
+  <div class="field-group">
+    <label>Stage 1 HRT (acidogenesis)</label>
+    <div class="field-row"><input type="number" id="hrt1" value="0.12" step="0.01"><span class="unit">days</span></div>
+  </div>
+  <div class="field-group">
+    <label>Stage 2 HRT (methanogenesis)</label>
+    <div class="field-row"><input type="number" id="hrt2" value="1.88" step="0.01"><span class="unit">days</span></div>
+  </div>
+
+  <div class="section-title">Reactor sizing</div>
+  <div class="field-group">
+    <label>Engineering safety factor</label>
+    <div class="field-row"><input type="number" id="safety" value="20" step="1"><span class="unit">%</span></div>
+  </div>
+  <div class="field-group">
+    <label>Reference CAPEX unit cost</label>
+    <div class="field-row"><input type="number" id="refcost" value="2000" step="100"><span class="unit">USD/m³</span></div>
+  </div>
+  <div class="field-group">
+    <label>Lang factor</label>
+    <div class="field-row"><input type="number" id="lang" value="2.30" step="0.01"><span class="unit">—</span></div>
+  </div>
+  <div class="field-group">
+    <label>CEPCI escalation factor</label>
+    <div class="field-row"><input type="number" id="cepci" value="1.300" step="0.001"><span class="unit">—</span></div>
+  </div>
+
+  <button class="btn-next" onclick="showTab('economics',document.querySelectorAll('nav button')[2])">Next: Economics →</button>
+</div>
+
+<!-- ECONOMICS TAB -->
+<div id="economics" class="tab">
+  <div class="section-title">Revenue parameters</div>
+  <div class="field-group">
+    <label>CH₄ selling price</label>
+    <div class="field-row"><input type="number" id="ch4price" value="0.50" step="0.01"><span class="unit">USD/m³</span></div>
+  </div>
+  <div class="field-group">
+    <label>H₂ selling price</label>
+    <div class="field-row"><input type="number" id="h2price" value="3.00" step="0.01"><span class="unit">USD/kg</span></div>
+  </div>
+  <div class="field-group">
+    <label>Gate / tipping fee income</label>
+    <div class="field-row"><input type="number" id="gatefee" value="0" step="0.5"><span class="unit">USD/m³</span></div>
+  </div>
+
+  <div class="section-title">Financial assumptions</div>
+  <div class="field-group">
+    <label>Discount rate</label>
+    <div class="field-row"><input type="number" id="discount" value="8" step="0.5"><span class="unit">%</span></div>
+  </div>
+  <div class="field-group">
+    <label>Project lifetime</label>
+    <div class="field-row"><input type="number" id="lifetime" value="20" step="1"><span class="unit">years</span></div>
+  </div>
+  <div class="field-group">
+    <label>Operating days per year</label>
+    <div class="field-row"><input type="number" id="opdays" value="328.5" step="0.5"><span class="unit">d/yr</span></div>
+  </div>
+
+  <div class="section-title">OPEX parameters</div>
+  <div class="field-group">
+    <label>Maintenance (% of CAPEX/yr)</label>
+    <div class="field-row"><input type="number" id="maint" value="3.0" step="0.1"><span class="unit">%</span></div>
+  </div>
+  <div class="field-group">
+    <label>Insurance (% of CAPEX/yr)</label>
+    <div class="field-row"><input type="number" id="insur" value="1.5" step="0.1"><span class="unit">%</span></div>
+  </div>
+  <div class="field-group">
+    <label>Operating staff (number)</label>
+    <div class="field-row"><input type="number" id="staff" value="11" step="1"><span class="unit">people</span></div>
+  </div>
+  <div class="field-group">
+    <label>Average annual salary</label>
+    <div class="field-row"><input type="number" id="salary" value="26000" step="1000"><span class="unit">USD</span></div>
+  </div>
+  <div class="field-group">
+    <label>Electricity consumption</label>
+    <div class="field-row"><input type="number" id="eleckwh" value="15" step="1"><span class="unit">kWh/t</span></div>
+  </div>
+  <div class="field-group">
+    <label>Electricity unit price</label>
+    <div class="field-row"><input type="number" id="elecprice" value="0.10" step="0.01"><span class="unit">USD/kWh</span></div>
+  </div>
+  <div class="field-group">
+    <label>Chemicals and nutrients</label>
+    <div class="field-row"><input type="number" id="chem" value="5.00" step="0.5"><span class="unit">USD/t</span></div>
+  </div>
+
+  <button class="btn-primary" onclick="calculate()">Calculate NPV ↗</button>
+</div>
+
+<!-- RESULTS TAB -->
+<div id="results" class="tab">
+  <div id="results-placeholder" style="text-align:center;padding:40px;color:#999;font-size:14px">
+    Enter your parameters and tap <strong>Calculate NPV</strong> on the Economics tab.
+  </div>
+  <div id="results-content" style="display:none">
+    <div class="result-grid">
+      <div class="result-card highlight">
+        <div class="result-label">CAPEX</div>
+        <div class="result-value" id="r-capex">—</div>
+        <div class="result-sub">total installed</div>
+      </div>
+      <div class="result-card">
+        <div class="result-label">Annual OPEX</div>
+        <div class="result-value" id="r-opex">—</div>
+        <div class="result-sub">per year</div>
+      </div>
+      <div class="result-card">
+        <div class="result-label">Annual revenue</div>
+        <div class="result-value" id="r-rev">—</div>
+        <div class="result-sub">CH₄ + H₂ + gate fee</div>
+      </div>
+      <div class="result-card">
+        <div class="result-label">Annual NCF</div>
+        <div class="result-value" id="r-ncf">—</div>
+        <div class="result-sub">net cash flow</div>
+      </div>
+    </div>
+
+    <div class="result-card" id="npv-card" style="margin-bottom:10px;text-align:center">
+      <div class="result-label">NPV</div>
+      <div class="result-value" style="font-size:22px" id="r-npv">—</div>
+    </div>
+    <div class="result-grid">
+      <div class="result-card">
+        <div class="result-label">Simple payback</div>
+        <div class="result-value" id="r-payback">—</div>
+      </div>
+      <div class="result-card">
+        <div class="result-label">ROI (undiscounted)</div>
+        <div class="result-value" id="r-roi">—</div>
+      </div>
+    </div>
+
+    <div class="section-title">Mass balance</div>
+    <div class="breakdown-row"><span>Daily VS loading</span><span id="r-vs">—</span></div>
+    <div class="breakdown-row"><span>Stage 1 reactor volume</span><span id="r-v1">—</span></div>
+    <div class="breakdown-row"><span>Stage 2 reactor volume</span><span id="r-v2">—</span></div>
+    <div class="breakdown-row"><span>Total reactor volume</span><span id="r-vtot">—</span></div>
+    <div class="breakdown-row"><span>Annual H₂ production</span><span id="r-h2ann">—</span></div>
+    <div class="breakdown-row"><span>Annual CH₄ production</span><span id="r-ch4ann">—</span></div>
+
+    <div class="section-title">OPEX breakdown</div>
+    <div class="breakdown-row"><span>Maintenance</span><span id="r-maint">—</span></div>
+    <div class="breakdown-row"><span>Insurance</span><span id="r-insur">—</span></div>
+    <div class="breakdown-row"><span>Labour</span><span id="r-labour">—</span></div>
+    <div class="breakdown-row"><span>Electricity</span><span id="r-elec">—</span></div>
+    <div class="breakdown-row"><span>Chemicals</span><span id="r-chems">—</span></div>
+    <div class="breakdown-row"><span>Total OPEX</span><span id="r-opex2">—</span></div>
+
+    <div class="section-title">Revenue breakdown</div>
+    <div class="breakdown-row"><span>CH₄ revenue</span><span id="r-ch4rev">—</span></div>
+    <div class="breakdown-row"><span>H₂ revenue</span><span id="r-h2rev">—</span></div>
+    <div class="breakdown-row"><span>Gate / tipping fee</span><span id="r-gaterev">—</span></div>
+    <div class="breakdown-row"><span>Total revenue</span><span id="r-totrev">—</span></div>
+
+    <div id="r-assessment" class="assessment-box neutral" style="margin-top:16px">
+      <div class="assessment-title" id="r-assess-title">—</div>
+      <div class="assessment-body" id="r-assess-body">—</div>
+    </div>
+  </div>
+</div>
+
+<!-- SENSITIVITY TAB -->
+<div id="sensitivity" class="tab">
+  <p style="font-size:12px;color:#666;margin-bottom:16px">Adjust parameters — NPV updates live</p>
+  <div id="sens-placeholder" style="text-align:center;padding:30px;color:#999;font-size:13px">Run calculation first</div>
+  <div id="sens-content" style="display:none">
+    <div class="slider-group">
+      <div class="slider-header"><label>CH₄ price (USD/m³)</label><span id="s-ch4-val">0.50</span></div>
+      <input type="range" id="s-ch4" min="0.1" max="5.0" step="0.05" value="0.50" oninput="updateSens()">
+    </div>
+    <div class="slider-group">
+      <div class="slider-header"><label>H₂ price (USD/kg)</label><span id="s-h2-val">3.00</span></div>
+      <input type="range" id="s-h2" min="0.5" max="10.0" step="0.1" value="3.00" oninput="updateSens()">
+    </div>
+    <div class="slider-group">
+      <div class="slider-header"><label>CAPEX adjustment</label><span id="s-capex-val">0%</span></div>
+      <input type="range" id="s-capex" min="-50" max="50" step="5" value="0" oninput="updateSens()">
+    </div>
+    <div class="slider-group">
+      <div class="slider-header"><label>Discount rate</label><span id="s-disc-val">8%</span></div>
+      <input type="range" id="s-disc" min="2" max="20" step="0.5" value="8" oninput="updateSens()">
+    </div>
+    <div class="slider-group">
+      <div class="slider-header"><label>Gas yield / rate adjustment</label><span id="s-gas-val">0%</span></div>
+      <input type="range" id="s-gas" min="-50" max="50" step="5" value="0" oninput="updateSens()">
+    </div>
+    <div class="sens-result">
+      <div class="sens-row"><span>Base NPV</span><span id="s-base-npv">—</span></div>
+      <div class="sens-row"><span>Adjusted NPV</span><strong id="s-adj-npv">—</strong></div>
+      <div class="sens-row"><span>Change</span><span id="s-change">—</span></div>
+      <div class="sens-row"><span>Annual NCF</span><span id="s-ncf">—</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT TAB -->
+<div id="about" class="tab">
+  <div class="about-section">
+    <h3>About this calculator</h3>
+    <p>A general-purpose techno-economic analysis (TEA) tool for two-stage anaerobic digestion (TSAD) biohythane production systems. Enter your own feedstock parameters and receive NPV, CAPEX, OPEX, payback period, and ROI calculations — works for any organic substrate.</p>
+  </div>
+  <div class="about-section">
+    <h3>Methodology</h3>
+    <ul>
+      <li>CAPEX: six-tenths rule with Lang factor and CEPCI escalation</li>
+      <li>OPEX: maintenance + insurance + labour + electricity + chemicals</li>
+      <li>Mass balance: yield-basis or rate-basis gas production</li>
+      <li>H₂ density: 0.0899 kg/m³ at STP for revenue conversion</li>
+      <li>NPV: discounted cash flow over project lifetime</li>
+      <li>Sensitivity: ±30% on key variables</li>
+    </ul>
+  </div>
+  <div class="about-section">
+    <h3>Key references</h3>
+    <div class="ref-item">Bhatt &amp; Tao (2020). <em>Bioengineering</em> 7(3), 74 — CAPEX methodology, Lang factor, six-tenths rule</div>
+    <div class="ref-item">Mahmod et al. (2021). <em>J. Environ. Chem. Eng.</em> 9(4), 105679 — TSAD biohythane TEA benchmark</div>
+    <div class="ref-item">Peters et al. (2003). <em>Plant Design and Economics</em>, 5th ed. — maintenance/insurance rates</div>
+    <div class="ref-item">Turton et al. (2018). <em>Analysis, Synthesis and Design</em>, 5th ed. — OPEX assumptions</div>
+    <div class="ref-item">IEA (2025). <em>Outlook for Biogas and Biomethane</em> — CH₄ selling price range</div>
+    <div class="ref-item">Tabassum et al. (2024). <em>Environ. Sci. Pollut. Res.</em> — H₂ price range, biohythane TEA review</div>
+  </div>
+  <div class="about-section">
+    <h3>Default values</h3>
+    <p>Defaults are based on four TSAD source papers from Feng Chia University (Taiwan): Abdul et al. (2025), Lin et al. (2021a,b), Lay et al. (2013). All monetary values in 2023 USD.</p>
+  </div>
+  <div class="about-section">
+    <h3>Install offline</h3>
+    <p>Open in Chrome or Safari → Share → Add to Home Screen. The app then works without internet.</p>
+  </div>
+  <div class="about-section">
+    <h3>Authors</h3>
+    <p>Idowu Afeez Temitope, C.C. Chen, Chiu-Yue Lin<br>
+    Department of Green Energy Science and Technology, Feng Chia University, Taiwan<br>
+    Live app: <a href="https://idowu-tsad-tea26.netlify.app">idowu-tsad-tea26.netlify.app</a></p>
+  </div>
+</div>
+
+<script>
+// ── GLOBALS ─────────────────────────────────────────────────────
+let baseNPV = null, baseCAPEX = null, baseNCF = null;
+let baseRevenue = null, baseOPEX = null;
+
+// ── TAB NAVIGATION ───────────────────────────────────────────────
+function showTab(id, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function updateUnits() {
+  const h2b = document.querySelector('input[name="h2basis"]:checked').value;
+  const ch4b = document.querySelector('input[name="ch4basis"]:checked').value;
+  document.getElementById('h2unit').textContent = h2b === 'rate' ? 'mL/L/d' : 'mL/g VS';
+  document.getElementById('ch4unit').textContent = ch4b === 'rate' ? 'mL/L/d' : 'mL/g VS';
+}
+
+// ── FORMATTING ───────────────────────────────────────────────────
+function fmt(v, decimals=0) {
+  const sign = v < 0 ? '-' : '';
+  const abs = Math.abs(v);
+  if (abs >= 1e6) return sign + 'USD ' + (abs/1e6).toFixed(2) + 'M';
+  if (abs >= 1e3) return sign + 'USD ' + abs.toLocaleString('en', {maximumFractionDigits: decimals});
+  return sign + 'USD ' + abs.toFixed(decimals);
+}
+function fmtV(v, unit='m³') { return v.toLocaleString('en', {maximumFractionDigits:1}) + ' ' + unit; }
+
+// ── MAIN CALCULATION ─────────────────────────────────────────────
+function calculate() {
+  const tpd       = +document.getElementById('throughput').value;
+  const ts        = +document.getElementById('ts').value / 100;
+  const vsts      = +document.getElementById('vsts').value / 100;
+  const sf        = +document.getElementById('scalefactor').value / 100;
+  const h2val     = +document.getElementById('h2val').value * sf;
+  const ch4val    = +document.getElementById('ch4val').value * sf;
+  const h2basis   = document.querySelector('input[name="h2basis"]:checked').value;
+  const ch4basis  = document.querySelector('input[name="ch4basis"]:checked').value;
+  const hrt1      = +document.getElementById('hrt1').value;
+  const hrt2      = +document.getElementById('hrt2').value;
+  const safety    = 1 + (+document.getElementById('safety').value / 100);
+  const refcost   = +document.getElementById('refcost').value;
+  const lang      = +document.getElementById('lang').value;
+  const cepci     = +document.getElementById('cepci').value;
+  const ch4price  = +document.getElementById('ch4price').value;
+  const h2price   = +document.getElementById('h2price').value;
+  const gatefee   = +document.getElementById('gatefee').value;
+  const disc      = +document.getElementById('discount').value / 100;
+  const life      = +document.getElementById('lifetime').value;
+  const opdays    = +document.getElementById('opdays').value;
+  const maint_r   = +document.getElementById('maint').value / 100;
+  const insur_r   = +document.getElementById('insur').value / 100;
+  const nstaff    = +document.getElementById('staff').value;
+  const salary    = +document.getElementById('salary').value;
+  const eleckwh   = +document.getElementById('eleckwh').value;
+  const elecprice = +document.getElementById('elecprice').value;
+  const chemprice = +document.getElementById('chem').value;
+
+  // Step 1: VS loading
+  const Q   = tpd;  // m³/d (density 1000 kg/m³)
+  const VS  = tpd * 1000 * ts * vsts; // kg VS/d
+
+  // Step 2: Reactor volumes
+  const V1   = Q * hrt1 * safety;
+  const V2   = Q * hrt2 * safety;
+  const Vtot = V1 + V2;
+
+  // Step 3: Gas production
+  let H2_d, CH4_d;
+  H2_d  = h2basis  === 'rate' ? V1 * h2val  / 1000 : VS * h2val  / 1000;
+  CH4_d = ch4basis === 'rate' ? V2 * ch4val / 1000 : VS * ch4val / 1000;
+  const H2_ann  = H2_d  * opdays;
+  const CH4_ann = CH4_d * opdays;
+  const H2_kg   = H2_ann * 0.0899;
+
+  // Step 4: CAPEX (six-tenths rule)
+  const Vref    = 100;
+  const Cref    = refcost * Vref;
+  const Cinst   = Cref * Math.pow(Vtot / Vref, 0.6);
+  const CAPEX   = Cinst * lang * cepci;
+
+  // Step 5: OPEX
+  const maint   = CAPEX * maint_r;
+  const insur   = CAPEX * insur_r;
+  const labour  = nstaff * salary;
+  const elec    = tpd * opdays * eleckwh * elecprice;
+  const chems   = tpd * opdays * chemprice;
+  const OPEX    = maint + insur + labour + elec + chems;
+
+  // Step 6: Revenue
+  const ch4rev  = CH4_ann * ch4price;
+  const h2rev   = H2_kg   * h2price;
+  const gaterev = Q * opdays * gatefee;
+  const REV     = ch4rev + h2rev + gaterev;
+
+  // Step 7: Financial
+  const NCF   = REV - OPEX;
+  const AF    = (1 - Math.pow(1 + disc, -life)) / disc;
+  const NPV   = -CAPEX + NCF * AF;
+  const payback = NCF > 0 ? (CAPEX / NCF).toFixed(1) + ' years' : 'Never (NCF negative)';
+  const roi   = NCF > 0 ? (((NCF * life - CAPEX) / CAPEX) * 100).toFixed(1) + '%' : 'N/A';
+
+  // Store globals for sensitivity
+  baseNPV = NPV; baseCAPEX = CAPEX; baseNCF = NCF;
+  baseRevenue = REV; baseOPEX = OPEX;
+
+  // Update Results tab
+  document.getElementById('r-capex').textContent  = fmt(CAPEX);
+  document.getElementById('r-opex').textContent   = fmt(OPEX) + '/yr';
+  document.getElementById('r-rev').textContent    = fmt(REV) + '/yr';
+  document.getElementById('r-ncf').textContent    = fmt(NCF) + '/yr';
+  document.getElementById('r-npv').textContent    = fmt(NPV);
+  document.getElementById('r-payback').textContent = payback;
+  document.getElementById('r-roi').textContent    = roi;
+
+  document.getElementById('r-vs').textContent    = fmtV(VS, 'kg VS/d');
+  document.getElementById('r-v1').textContent    = fmtV(V1);
+  document.getElementById('r-v2').textContent    = fmtV(V2);
+  document.getElementById('r-vtot').textContent  = fmtV(Vtot);
+  document.getElementById('r-h2ann').textContent  = fmtV(H2_ann) + ' (' + H2_kg.toFixed(0) + ' kg)';
+  document.getElementById('r-ch4ann').textContent = fmtV(CH4_ann);
+
+  document.getElementById('r-maint').textContent  = fmt(maint);
+  document.getElementById('r-insur').textContent  = fmt(insur);
+  document.getElementById('r-labour').textContent = fmt(labour);
+  document.getElementById('r-elec').textContent   = fmt(elec);
+  document.getElementById('r-chems').textContent  = fmt(chems);
+  document.getElementById('r-opex2').textContent  = fmt(OPEX);
+
+  document.getElementById('r-ch4rev').textContent  = fmt(ch4rev);
+  document.getElementById('r-h2rev').textContent   = fmt(h2rev);
+  document.getElementById('r-gaterev').textContent = fmt(gaterev);
+  document.getElementById('r-totrev').textContent  = fmt(REV);
+
+  // NPV card colour
+  const npvCard = document.getElementById('npv-card');
+  npvCard.className = 'result-card ' + (NPV >= 0 ? 'highlight' : 'negative');
+
+  // Assessment
+  const aBox  = document.getElementById('r-assessment');
+  const aTitle = document.getElementById('r-assess-title');
+  const aBody  = document.getElementById('r-assess-body');
+  if (NCF > 0 && NPV > 0) {
+    aBox.className = 'assessment-box positive';
+    aTitle.textContent = '✅ Commercially viable';
+    aBody.textContent  = 'Positive NCF and positive NPV. Project recovers capital and generates surplus value at the specified discount rate.';
+  } else if (NCF > 0 && NPV <= 0) {
+    aBox.className = 'assessment-box neutral';
+    aTitle.textContent = '⚠️ Cash flow positive, NPV negative';
+    aBody.textContent  = 'Annual cash flow is positive but insufficient to recover capital at the discount rate. Consider lower discount rate or policy support.';
+  } else {
+    aBox.className = 'assessment-box negative';
+    aTitle.textContent = '❌ Not commercially viable at current prices';
+    aBody.textContent  = 'Negative annual NCF — gas revenue cannot cover operating costs. Policy support, gate fee income, or higher gas prices required.';
+  }
+
+  document.getElementById('results-placeholder').style.display = 'none';
+  document.getElementById('results-content').style.display = 'block';
+  document.getElementById('sens-placeholder').style.display = 'none';
+  document.getElementById('sens-content').style.display = 'block';
+
+  // Init sensitivity sliders
+  document.getElementById('s-ch4').value = ch4price;
+  document.getElementById('s-h2').value  = h2price;
+  document.getElementById('s-disc').value = +document.getElementById('discount').value;
+  document.getElementById('s-ch4-val').textContent = ch4price.toFixed(2);
+  document.getElementById('s-h2-val').textContent  = h2price.toFixed(2);
+  document.getElementById('s-base-npv').textContent = fmt(NPV);
+
+  updateSens();
+  showTab('results', document.querySelectorAll('nav button')[3]);
+}
+
+// ── SENSITIVITY ──────────────────────────────────────────────────
+function updateSens() {
+  if (baseNPV === null) return;
+  const ch4s  = +document.getElementById('s-ch4').value;
+  const h2s   = +document.getElementById('s-h2').value;
+  const capex_adj = +document.getElementById('s-capex').value / 100;
+  const disc_s = +document.getElementById('s-disc').value / 100;
+  const gas_adj = +document.getElementById('s-gas').value / 100;
+
+  document.getElementById('s-ch4-val').textContent = ch4s.toFixed(2);
+  document.getElementById('s-h2-val').textContent  = h2s.toFixed(2);
+  document.getElementById('s-capex-val').textContent = (capex_adj >= 0 ? '+' : '') + (capex_adj * 100).toFixed(0) + '%';
+  document.getElementById('s-disc-val').textContent = (disc_s * 100).toFixed(1) + '%';
+  document.getElementById('s-gas-val').textContent  = (gas_adj >= 0 ? '+' : '') + (gas_adj * 100).toFixed(0) + '%';
+
+  // Adjusted values
+  const adjRevenue = baseRevenue * (1 + gas_adj) * (ch4s / +document.getElementById('ch4price').value)
+                     * (h2s / +document.getElementById('h2price').value);
+  const K = 1 + capex_adj;
+  const adjCAPEX = baseCAPEX * K;
+  const maint_r = +document.getElementById('maint').value / 100;
+  const insur_r = +document.getElementById('insur').value / 100;
+  const nonCAPEXopex = baseOPEX - baseCAPEX * (maint_r + insur_r);
+  const adjOPEX = nonCAPEXopex + adjCAPEX * (maint_r + insur_r);
+  const adjNCF  = adjRevenue - adjOPEX;
+  const life    = +document.getElementById('lifetime').value;
+  const adjAF   = (1 - Math.pow(1 + disc_s, -life)) / disc_s;
+  const adjNPV  = -adjCAPEX + adjNCF * adjAF;
+  const change  = adjNPV - baseNPV;
+
+  document.getElementById('s-base-npv').textContent = fmt(baseNPV);
+  document.getElementById('s-adj-npv').textContent  = fmt(adjNPV);
+  document.getElementById('s-change').textContent   = (change >= 0 ? '+' : '') + fmt(change);
+  document.getElementById('s-ncf').textContent      = fmt(adjNCF) + '/yr';
+}
+
+// ── SERVICE WORKER ───────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
+
+
+
+
+
